@@ -1,6 +1,6 @@
 # Diabetes Prediction with Machine Learning
 
-A machine learning application that predicts diabetes using the Pima Indians Diabetes Dataset. Compares Logistic Regression and Random Forest models.
+A machine learning demonstration that compares Logistic Regression and Random Forest on the Pima Indians Diabetes Dataset through a FastAPI + React interface.
 
 ## Overview
 
@@ -141,6 +141,12 @@ Request body:
 5. View results showing prediction outcomes and probabilities
 6. Use "Reset" to clear the form and start over
 
+## Evaluation notes
+
+The published metrics are from a single stratified 80/20 train-test split with a fixed random seed. They are useful for demonstrating the workflow, but they are **not clinical validation** and should not be interpreted as production or diagnostic performance.
+
+Feature preprocessing is fitted only on the training split. Input validation on the API enforces reasonable bounds before inference.
+
 ## Important Notes
 
 - No LLM (Large Language Model) is used for predictions
@@ -152,11 +158,11 @@ Request body:
 
 ## Results
 
-Random Forest demonstrates superior performance compared to Logistic Regression:
+On the documented hold-out split, Random Forest demonstrates higher accuracy, precision, recall, and F1 than Logistic Regression:
 - 4.5% higher accuracy
 - Better precision and recall
 - Slightly lower ROC-AUC but better overall classification
 
-Both models show reasonable performance for diabetes prediction, with Random Forest being the recommended model for production use.
+Both models show reasonable performance for diabetes prediction, with Random Forest performing better on this particular hold-out split.
 
 ---
