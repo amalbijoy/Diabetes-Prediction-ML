@@ -4,7 +4,7 @@ from starlette.middleware.cors import CORSMiddleware
 import os
 import logging
 from pathlib import Path
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split
@@ -32,14 +32,14 @@ metrics = {}
 
 # Define Pydantic models
 class PredictionInput(BaseModel):
-    pregnancies: float
-    glucose: float
-    blood_pressure: float
-    skin_thickness: float
-    insulin: float
-    bmi: float
-    diabetes_pedigree_function: float
-    age: float
+    pregnancies: float = Field(ge=0, le=20)
+    glucose: float = Field(ge=0, le=300)
+    blood_pressure: float = Field(ge=0, le=200)
+    skin_thickness: float = Field(ge=0, le=100)
+    insulin: float = Field(ge=0, le=1000)
+    bmi: float = Field(ge=0, le=80)
+    diabetes_pedigree_function: float = Field(ge=0, le=5)
+    age: float = Field(ge=0, le=120)
 
 class PredictionOutput(BaseModel):
     logistic_regression: dict
@@ -172,9 +172,9 @@ async def predict_diabetes(input_data: PredictionInput):
             }
         }
         
-    except Exception as e:
-        logging.error(f"Prediction error: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Prediction failed: {str(e)}")
+    except Exception:
+        logging.exception("Prediction error")
+        raise HTTPException(status_code=500, detail="Prediction failed.")
 
 # Include the router in the main app
 app.include_router(api_router)
@@ -182,9 +182,15 @@ app.include_router(api_router)
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
-    allow_origins=os.environ.get('CORS_ORIGINS', '*').split(','),
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=[
+        origin.strip()
+        for origin in os.environ.get(
+            "CORS_ORIGINS", "http://localhost:3000"
+        ).split(",")
+        if origin.strip()
+    ],
+    allow_methods=["GET", "POST"],
+    allow_headers=["Content-Type"],
 )
 
 # Configure logging
