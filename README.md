@@ -1,124 +1,71 @@
 # Diabetes Prediction with Machine Learning
 
-A machine learning demonstration that compares Logistic Regression and Random Forest on the Pima Indians Diabetes Dataset through a FastAPI + React interface.
+> Educational ML demonstration comparing Logistic Regression and Random Forest through a FastAPI + React application.
 
 ## Overview
 
-This project implements a full-stack web application for diabetes prediction using machine learning. The application allows users to input medical parameters and receive predictions from two different ML models.
+The application accepts eight numeric features from the Pima Indians Diabetes dataset and returns predictions from two trained scikit-learn classifiers.
+
+This repository is intended for **learning and model-comparison purposes**. It is not a medical device, diagnostic system, or clinically validated prediction service.
 
 ## Dataset
 
-Pima Indians Diabetes Dataset
-- Source: UCI Machine Learning Repository
-- Features: 8 medical predictor variables
-- Target: Binary outcome (0 = No Diabetes, 1 = Diabetes)
-- Samples: 768 instances
+The model code expects the **Pima Indians Diabetes** dataset with 768 rows, 8 predictor variables, and a binary outcome.
 
-### Features
-1. Pregnancies: Number of times pregnant
-2. Glucose: Plasma glucose concentration (mg/dL)
-3. Blood Pressure: Diastolic blood pressure (mm Hg)
-4. Skin Thickness: Triceps skin fold thickness (mm)
-5. Insulin: 2-Hour serum insulin (mu U/ml)
-6. BMI: Body mass index (weight in kg/(height in m)^2)
-7. Diabetes Pedigree Function: Diabetes pedigree function
-8. Age: Age (years)
+At startup, the backend downloads the CSV from a GitHub-hosted copy of the dataset:
+
+```text
+https://raw.githubusercontent.com/jbrownlee/Datasets/master/pima-indians-diabetes.data.csv
+```
+
+No local database is required for the training data, but backend startup therefore depends on access to that URL.
+
+### Input features
+
+1. Pregnancies
+2. Glucose
+3. Blood Pressure
+4. Skin Thickness
+5. Insulin
+6. BMI
+7. Diabetes Pedigree Function
+8. Age
 
 ## Models
 
 ### Logistic Regression
-- Simple, interpretable baseline model
-- Fast training and prediction
-- Linear decision boundary
+
+Used as the simpler, interpretable baseline. Features are standardized with `StandardScaler` fitted only on the training split.
 
 ### Random Forest
-- Ensemble learning method
-- Better performance on non-linear patterns
-- Feature importance analysis
 
-## Model Performance
+Used as the tree-based comparison model with 100 estimators and a fixed random seed.
 
-### Logistic Regression
-- Accuracy: 0.7143
-- Precision: 0.6087
-- Recall: 0.5185
-- F1-Score: 0.56
-- ROC-AUC: 0.823
+## Reported evaluation
 
-### Random Forest
-- Accuracy: 0.7597
-- Precision: 0.6809
-- Recall: 0.5926
-- F1-Score: 0.6337
-- ROC-AUC: 0.8147
+The README reports the current holdout results from a single **stratified 80/20 split** with `random_state=42`:
 
-## Technology Stack
+| Model | Accuracy | Precision | Recall | F1 | ROC-AUC |
+|---|---:|---:|---:|---:|---:|
+| Logistic Regression | 0.7143 | 0.6087 | 0.5185 | 0.5600 | 0.8230 |
+| Random Forest | 0.7597 | 0.6809 | 0.5926 | 0.6337 | 0.8147 |
 
-### Backend
-- FastAPI: Modern Python web framework
-- scikit-learn: Machine learning library
-- pandas: Data manipulation
-- numpy: Numerical computing
+These are demonstration metrics for that single split. They should not be treated as a general estimate of clinical performance.
 
-### Frontend
-- React: UI library
-- Tailwind CSS: Styling
-- Axios: HTTP client
-- Shadcn/UI: Component library
+The current preprocessing does not perform clinical missing-value imputation or external validation, and the dataset's zero-valued measurements are used as numeric inputs.
 
-## Project Structure
+## API
 
-```
-/app/
-├── backend/
-│   ├── server.py              # FastAPI application with ML models
-│   ├── requirements.txt       # Python dependencies
-│   └── .env                   # Environment variables
-├── frontend/
-│   ├── src/
-│   │   ├── App.js             # Main React component
-│   │   ├── App.css            # Styles
-│   │   └── components/        # UI components
-│   ├── package.json           # Node dependencies
-│   └── .env                   # Frontend environment
-└── README.md
-```
+Backend endpoints:
 
-## How to Run
+| Method | Endpoint | Purpose |
+|---|---|---|
+| GET | `/api/` | API root response |
+| GET | `/api/models/metrics` | Return stored holdout metrics |
+| POST | `/api/predict` | Run both models on validated input |
 
-### Prerequisites
-- Python 3.11+
-- Node.js 16+
-- yarn package manager
+Example request:
 
-### Backend Setup
-```bash
-cd backend
-pip install -r requirements.txt
-uvicorn server:app --host 0.0.0.0 --port 8001 --reload
-```
-
-### Frontend Setup
-```bash
-cd frontend
-yarn install
-yarn start
-```
-
-### Access Application
-- Frontend: http://localhost:3000
-- Backend API: http://localhost:8001
-- API Documentation: http://localhost:8001/docs
-
-## API Endpoints
-
-### GET /api/models/metrics
-Returns performance metrics for both models
-
-### POST /api/predict
-Makes predictions using both models
-
-Request body:
 ```json
 {
   "pregnancies": 6,
@@ -132,37 +79,55 @@ Request body:
 }
 ```
 
-## Usage
+The API enforces numeric bounds before inference and returns predictions plus class probabilities for both models.
 
-1. Open the application in your browser
-2. View model performance metrics at the top
-3. Enter patient medical data in the form
-4. Click "Predict" to get predictions from both models
-5. View results showing prediction outcomes and probabilities
-6. Use "Reset" to clear the form and start over
+## Frontend
 
-## Evaluation notes
+The frontend is a React application built with the repository's CRA/CRACO toolchain. It displays model metrics, collects feature values, and calls the FastAPI backend.
 
-The published metrics are from a single stratified 80/20 train-test split with a fixed random seed. They are useful for demonstrating the workflow, but they are **not clinical validation** and should not be interpreted as production or diagnostic performance.
+## Run locally
 
-Feature preprocessing is fitted only on the training split. Input validation on the API enforces reasonable bounds before inference.
+### Backend
 
-## Important Notes
+```bash
+cd backend
+python -m pip install -r requirements.txt
+uvicorn server:app --host 0.0.0.0 --port 8001 --reload
+```
 
-- No LLM (Large Language Model) is used for predictions
-- All predictions are made using traditional machine learning algorithms
-- Models are trained on the Pima Indians Diabetes Dataset
-- Predictions are session-based and not stored in database
-- This is an educational project for demonstration purposes
-- Not intended for actual medical diagnosis
+### Frontend
 
-## Results
+```bash
+cd frontend
+yarn install
+yarn start
+```
 
-On the documented hold-out split, Random Forest demonstrates higher accuracy, precision, recall, and F1 than Logistic Regression:
-- 4.5% higher accuracy
-- Better precision and recall
-- Slightly lower ROC-AUC but better overall classification
+By default:
 
-Both models show reasonable performance for diabetes prediction, with Random Forest performing better on this particular hold-out split.
+- Frontend: `http://localhost:3000`
+- Backend: `http://localhost:8001`
+- API docs: `http://localhost:8001/docs`
 
----
+The backend's CORS configuration defaults to `http://localhost:3000` and can be overridden with `CORS_ORIGINS`.
+
+## Validation and testing
+
+A lightweight backend test validates accepted input and rejects an out-of-range age. GitHub Actions also runs the repository's automated checks.
+
+This is not a substitute for a full ML evaluation pipeline, clinical validation, or production monitoring.
+
+## Project structure
+
+```text
+Diabetes-Prediction-ML/
+├── backend/
+├── frontend/
+├── .github/
+├── LICENSE
+└── README.md
+```
+
+## License
+
+See [LICENSE](LICENSE).
